@@ -14,7 +14,7 @@ tree_connect_request = binascii.unhexlify("00000060ff534d4275000000001807c000000
 trans2_session_setup = binascii.unhexlify("0000004eff534d4232000000001807c00000000000000000000000000008fffe000841000f0c0000000100000000000000a6d9a40000000c00420000004e0001000e000d0000000000000000000000000000")
 
 # Arguments
-parser = argparse.ArgumentParser(description='Detect present of DOUBLEPULSAR implant')
+parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR implant\n\nAuthor: Luke Jennings\nWebsite: https://countercept.com\nTwitter: @countercept", formatter_class=argparse.RawTextHelpFormatter)
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--ip', help='Single IP address to check')
 group.add_argument('--file', help='File containing a list of IP addresses to check')

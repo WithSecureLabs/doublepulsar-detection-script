@@ -1,3 +1,7 @@
+Author: Luke Jennings (luke.jennings@countercept.com - @jukelennings)
+Company: Countercept (@countercept)
+Website: https://countercept.com
+
 A python2 script for sweeping a list of IPs for the presence of the DOUBLEPULSAR SMB implant that was released by the Shadow Brokers. Supports both single IP checking and a list of IPs in a file with multi-threading support. 
 
 This is a very early release in the interests of allowing people to find compromises on their network now that these exploits are in the wild and no doubt being used to target organizations. It re-implements the ping command of the implant, which can be used remotely without authentication, in order to determine if a system is infected or not.
