@@ -1,6 +1,9 @@
 Author: Luke Jennings (luke.jennings@countercept.com - @jukelennings)
+
 Company: Countercept (@countercept)
+
 Website: https://countercept.com
+
 
 A python2 script for sweeping a list of IPs for the presence of the DOUBLEPULSAR SMB implant that was released by the Shadow Brokers. Supports both single IP checking and a list of IPs in a file with multi-threading support. 
 
@@ -11,7 +14,10 @@ Not all OS versions have been tested and some currently fail. For example, 2012 
 Simple example usage pre and post-exploit:
 
 root@kali:~# python detect_doublepulsar.py --ip 192.168.175.128
+
 [-] [192.168.175.128] No presence of DOUBLEPULSAR
 
+
 root@kali:~# python detect_doublepulsar.py --ip 192.168.175.128
+
 [+] [192.168.175.128] DOUBLEPULSAR DETECTED!!!
