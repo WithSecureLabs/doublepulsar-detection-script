@@ -21,3 +21,7 @@ root@kali:~# python detect_doublepulsar.py --ip 192.168.175.128
 root@kali:~# python detect_doublepulsar.py --ip 192.168.175.128
 
 [+] [192.168.175.128] DOUBLEPULSAR DETECTED!!!
+
+This repository also contains three Snort signatures that can be used for detecting the use of the unimplemented SESSION_SETUP Trans2 command that the ping utility uses and different response cases. While we do not condone the reliance on signatures for effective attack detection, due to how easily they are bypassed, these rules are highly specific and should provide some detection capability against new threat groups reusing these exploits and implants without modification.
+
+For more information on this thinking, see the following article - https://www.countercept.com/our-thinking/missioncontrolasaurus/
