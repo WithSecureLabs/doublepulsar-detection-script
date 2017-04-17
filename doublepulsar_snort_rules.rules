@@ -1,0 +1,10 @@
+# Authors: Jayden Zheng (@fuseyjz) and Wei-Chea Ang (@77_6A)
+# Company: Countercept
+# Website: https://countercept.com
+# Twitter: @countercept
+
+alert tcp any any -> $HOME_NET 445 (msg:"DOUBLEPULSAR SMB implant - Unimplemented Trans2 Session Setup Subcommand Request"; flow:to_server, established; content:"|FF|SMB|32|"; depth:5; offset:4; content:"|0E 00|"; distance:56; within:2; reference:url,https://twitter.com/countercept/status/853282053323935749; sid:1618009; classtype:attempted-user; rev:1;)
+
+alert tcp $HOME_NET 445 -> any any (msg:"DOUBLEPULSAR SMB implant - Unimplemented Trans2 Session Setup Subcommand - 81 Response"; flow:to_client, established; content:"|FF|SMB|32|"; depth:5; offset:4; content:"|51 00|"; distance:25; within:2; reference:url,https://twitter.com/countercept/status/853282053323935749; sid:1618008; classtype:attempted-user; rev:1;)
+
+alert tcp $HOME_NET 445 -> any any (msg:"DOUBLEPULSAR SMB implant - Unimplemented Trans2 Session Setup Subcommand - 82 Response"; flow:to_client, established; content:"|FF|SMB|32|"; depth:5; offset:4; content:"|52 00|"; distance:25; within:2; reference:url,https://twitter.com/countercept/status/853282053323935749; sid:1618010; classtype:attempted-user; rev:1;)
