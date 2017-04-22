@@ -26,18 +26,31 @@ root@kali:~# python detect_doublepulsar_smb.py --ip 192.168.175.128
 root@kali:~# python detect_doublepulsar_rdp.py --file ips.list --verbose --threads 1
 
 [*] [192.168.175.141] Sending negotiation request
+
 [*] [192.168.175.141] Server explicitly refused SSL, reconnecting
+
 [*] [192.168.175.141] Sending non-ssl negotiation request
+
 [*] [192.168.175.141] Sending ping packet
+
 [-] [192.168.175.141] No presence of DOUBLEPULSAR RDP implant
+
 [*] [192.168.175.143] Sending negotiation request
+
 [*] [192.168.175.143] Server chose to use SSL - negotiating SSL connection
+
 [*] [192.168.175.143] Sending SSL client data
+
 [*] [192.168.175.143] Sending ping packet
+
 [-] [192.168.175.143] No presence of DOUBLEPULSAR RDP implant
+
 [*] [192.168.175.142] Sending negotiation request
+
 [*] [192.168.175.142] Sending client data
+
 [*] [192.168.175.142] Sending ping packet
+
 [+] [192.168.175.142] DOUBLEPULSAR RDP IMPLANT DETECTED!!!
 
 
