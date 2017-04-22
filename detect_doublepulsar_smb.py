@@ -14,7 +14,7 @@ tree_connect_request = binascii.unhexlify("00000060ff534d4275000000001807c000000
 trans2_session_setup = binascii.unhexlify("0000004eff534d4232000000001807c00000000000000000000000000008fffe000841000f0c0000000100000000000000a6d9a40000000c00420000004e0001000e000d0000000000000000000000000000")
 
 # Arguments
-parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR implant\n\nAuthor: Luke Jennings\nWebsite: https://countercept.com\nTwitter: @countercept", formatter_class=argparse.RawTextHelpFormatter)
+parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR SMB implant\n\nAuthor: Luke Jennings\nWebsite: https://countercept.com\nTwitter: @countercept", formatter_class=argparse.RawTextHelpFormatter)
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--ip', help='Single IP address to check')
 group.add_argument('--file', help='File containing a list of IP addresses to check')
@@ -51,7 +51,7 @@ def check_ip(ip):
 
     # Send/receive negotiate protocol request
     if verbose:
-        print_status(ip, "Sending negotation protocol request")
+        print_status(ip, "Sending negotiation protocol request")
     s.send(negotiate_protocol_request)
     s.recv(1024)
 
@@ -102,10 +102,10 @@ def check_ip(ip):
     # Check for 0x51 response to indicate DOUBLEPULSAR infection
     if final_response[34] == "\x51":
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR DETECTED!!!" % ip
+            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!!" % ip
     else:
         with print_lock:
-            print "[-] [%s] No presence of DOUBLEPULSAR" % ip
+            print "[-] [%s] No presence of DOUBLEPULSAR SMB implant" % ip
 
 
 def threaded_check(ip_address):
