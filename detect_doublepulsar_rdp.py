@@ -110,8 +110,12 @@ def check_ip(ip):
     # Non-infected machines terminate connection, infected send a response
     try:
         ping_response = s.recv(1024)
+
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR RDP IMPLANT DETECTED!!!" % ip
+            if len(ping_response) == 288:
+                print "[+] [%s] DOUBLEPULSAR RDP IMPLANT DETECTED!!!" % ip
+            else:
+                print "[-] [%s] Status Unknown - Response received but length was %d not 288" % (ip, len(ping_response))
         s.close()
     except socket.error as e:
         with print_lock:
