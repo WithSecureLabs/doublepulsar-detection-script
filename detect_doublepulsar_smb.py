@@ -31,6 +31,10 @@ num_threads = int(args.threads)
 semaphore = threading.BoundedSemaphore(value=num_threads)
 print_lock = threading.Lock()
 
+def calculate_doublepulsar_xor_key(s):
+    x = (2 * s ^ (((s & 0xff00 | (s << 16)) << 8) | (((s >> 16) | s & 0xff0000) >> 8)))
+    x = x & 0xffffffff  # this line was added just to truncate to 32 bits
+    return x
 
 def print_status(ip, message):
     global print_lock
@@ -101,8 +105,11 @@ def check_ip(ip):
 
     # Check for 0x51 response to indicate DOUBLEPULSAR infection
     if final_response[34] == "\x51":
+        signature = final_response[18:26]
+        signature_long = struct.unpack('<Q', signature)[0]
+        key = calculate_doublepulsar_xor_key(signature_long)
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!!" % ip
+            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! XOR Key: %s" % (ip, hex(key))
     else:
         with print_lock:
             print "[-] [%s] No presence of DOUBLEPULSAR SMB implant" % ip
