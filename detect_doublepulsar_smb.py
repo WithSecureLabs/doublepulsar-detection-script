@@ -5,6 +5,7 @@ import socket
 import argparse
 import struct
 import threading
+from netaddr import IPNetwork
 
 
 # Packets
@@ -16,7 +17,7 @@ trans2_session_setup = binascii.unhexlify("0000004eff534d4232000000001807c000000
 # Arguments
 parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR SMB implant\n\nAuthor: Luke Jennings\nWebsite: https://countercept.com\nTwitter: @countercept", formatter_class=argparse.RawTextHelpFormatter)
 group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('--ip', help='Single IP address to check')
+group.add_argument('--ip', help='Single IP address or CIDR network to check')
 group.add_argument('--file', help='File containing a list of IP addresses to check')
 parser.add_argument('--timeout', help="Timeout on connection for socket in seconds", default=None)
 parser.add_argument('--verbose', help="Verbose output for checking of commands", action='store_true')
@@ -126,9 +127,16 @@ def threaded_check(ip_address):
     finally:
         semaphore.release()
 
-
 if ip:
-    check_ip(ip)
+    network = IPNetwork(ip);
+    for addr in network:
+        # Skip the network and broadcast addresses
+	if (((addr == network.network) or (addr == network.broadcast)) and (network.network != network.broadcast)):
+            continue
+        semaphore.acquire()
+        ip_address = str(addr)
+        t = threading.Thread(target=threaded_check, args=(ip_address,))
+        t.start()
 if filename:
     with open(filename, "r") as fp:
         for line in fp:
