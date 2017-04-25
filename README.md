@@ -11,8 +11,8 @@ This is an early release in the interests of allowing people to find compromises
 
 Not all OS versions have been tested and some currently fail. For example, 2012 will reject the SMB sequence with ACCESS_DENIED. However, this system is not vulnerable to the ETERNALBLUE exploit and the DOUBLEPULSAR implant receives the same error when trying to ping a target. Therefore, it is possible that errors against certain windows versions may be indicative that the system is not compromised.
 
-Simple usage examples are given below:
-
+## Usage
+```
 root@kali:~# python detect_doublepulsar_smb.py --ip 192.168.175.128
 
 [-] [192.168.175.128] No presence of DOUBLEPULSAR SMB implant
@@ -52,8 +52,28 @@ root@kali:~# python detect_doublepulsar_rdp.py --file ips.list --verbose --threa
 [*] [192.168.175.142] Sending ping packet
 
 [+] [192.168.175.142] DOUBLEPULSAR RDP IMPLANT DETECTED!!!
+```
+## Scanning your network
+```shell
+# target network (adapt this to your network)
+NETWORKRANGE=192.168.33.0/24
+# install the required scanning tools
+brew install masscan || apt-get install masscan
+git clone https://github.com/FireFart/doublepulsar-detection-script.git
+cd doublepulsar-detection-script
+# scan open ports
+masscan -p445  $NETWORKRANGE > smb.lst
+masscan -p3389 $NETWORKRANGE > rdp.lst
+# clean the list of IPs
+sed -i \0 "s/^.* on //" smb.lst
+sed -i \0 "s/^.* on //" rdp.lst
+# check vulnerabilities on the hosts who have the service open
+python detect_doublepulsar_smb.py --file smb.lst
+python detect_doublepulsar_rdp.py --file rdp.lst
+```
 
-
+## Snort
 This repository also contains three Snort signatures that can be used for detecting the use of the unimplemented SESSION_SETUP Trans2 command that the SMB ping utility uses and different response cases. While we do not condone the reliance on signatures for effective attack detection, due to how easily they are bypassed, these rules are highly specific and should provide some detection capability against new threat groups reusing these exploits and implants without modification.
 
+## More info
 For more information on this thinking, see the following article - https://www.countercept.com/our-thinking/missioncontrolasaurus/
