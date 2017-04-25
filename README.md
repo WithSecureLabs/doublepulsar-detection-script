@@ -52,6 +52,9 @@ sed -i \0 "s/^.* on //" rdp.lst
 # check vulnerabilities on the hosts who have the service open
 python detect_doublepulsar_smb.py --file smb.lst
 python detect_doublepulsar_rdp.py --file rdp.lst
+
+# Or, if you have the python netaddr library
+python detect_doublepulsar_smb.py --net 192.168.0.1/24
 ```
 
 ## Snort
