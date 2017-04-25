@@ -21,6 +21,7 @@ group.add_argument('--file', help='File containing a list of IP addresses to che
 parser.add_argument('--timeout', help="Timeout on connection for socket in seconds", default=None)
 parser.add_argument('--verbose', help="Verbose output for checking of commands", action='store_true')
 parser.add_argument('--threads', help="Number of connection threads when checking file of IPs (default 10)", default="10")
+parser.add_argument('--uninstall', help="Uninstall DOUBLEPULSAR if found", action='store_true')
 
 args = parser.parse_args()
 ip = args.ip
@@ -28,13 +29,16 @@ filename = args.file
 timeout = args.timeout
 verbose = args.verbose
 num_threads = int(args.threads)
+uninstall = args.uninstall
 semaphore = threading.BoundedSemaphore(value=num_threads)
 print_lock = threading.Lock()
+
 
 def calculate_doublepulsar_xor_key(s):
     x = (2 * s ^ (((s & 0xff00 | (s << 16)) << 8) | (((s >> 16) | s & 0xff0000) >> 8)))
     x = x & 0xffffffff  # this line was added just to truncate to 32 bits
     return x
+
 
 def print_status(ip, message):
     global print_lock
@@ -97,11 +101,9 @@ def check_ip(ip):
 
     # Send trans2 sessions setup request
     if verbose:
-        print_status(ip, "Sending trans2 session setup")
+        print_status(ip, "Sending trans2 session setup - ping command")
     s.send(modified_trans2_session_setup)
     final_response = s.recv(1024)
-
-    s.close()
 
     # Check for 0x51 response to indicate DOUBLEPULSAR infection
     if final_response[34] == "\x51":
@@ -110,9 +112,30 @@ def check_ip(ip):
         key = calculate_doublepulsar_xor_key(signature_long)
         with print_lock:
             print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! XOR Key: %s" % (ip, hex(key))
+
+        if uninstall:
+            # Update MID and op code via timeout
+            modified_trans2_session_setup = list(modified_trans2_session_setup)
+            modified_trans2_session_setup[34] = "\x42"
+            modified_trans2_session_setup[49] = "\x0e"
+            modified_trans2_session_setup[50] = "\x69"
+            modified_trans2_session_setup[51] = "\x00"
+            modified_trans2_session_setup[52] = "\x00"
+            modified_trans2_session_setup = "".join(modified_trans2_session_setup)
+
+            if verbose:
+                print_status(ip, "Sending trans2 session setup - uninstall/burn command")
+            s.send(modified_trans2_session_setup)
+            uninstall_response = s.recv(1024)
+            if uninstall_response[34] == "\x52":
+                with print_lock:
+                    print "[+] [%s] DOUBLEPULSAR uninstall successful" % ip
+
     else:
         with print_lock:
             print "[-] [%s] No presence of DOUBLEPULSAR SMB implant" % ip
+
+    s.close()
 
 
 def threaded_check(ip_address):
@@ -136,5 +159,3 @@ if filename:
             ip_address = line.strip()
             t = threading.Thread(target=threaded_check, args=(ip_address,))
             t.start()
-
-

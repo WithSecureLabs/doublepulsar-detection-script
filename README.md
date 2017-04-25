@@ -5,7 +5,7 @@ Company: Countercept (@countercept)
 Website: https://countercept.com
 
 
-A set of python2 scripts for sweeping a list of IPs for the presence of both SMB and RDP versions of the DOUBLEPULSAR implant that was released by the Shadow Brokers. Supports both single IP checking and a list of IPs in a file with multi-threading support. 
+A set of python2 scripts for sweeping a list of IPs for the presence of both SMB and RDP versions of the DOUBLEPULSAR implant that was released by the Shadow Brokers. Supports both single IP checking and a list of IPs in a file with multi-threading support. The SMB version also supports the remote uninstall of the implant for remediation, which was helped by knowledge of the opcode mechanism reversed by @zerosum0x0.  
 
 This is an early release in the interests of allowing people to find compromises on their network now that these exploits are in the wild and no doubt being used to target organizations. It re-implements the ping command of the implant, which can be used remotely without authentication, in order to determine if a system is infected or not. Both SMB and RDP versions of the implant are supported.
 
@@ -34,7 +34,12 @@ root@kali:~# python detect_doublepulsar_rdp.py --file ips.list --verbose --threa
 [*] [192.168.175.142] Sending client data
 [*] [192.168.175.142] Sending ping packet
 [+] [192.168.175.142] DOUBLEPULSAR RDP IMPLANT DETECTED!!!
+
+root@kali:~# python2 detect_doublepulsar_smb.py --ip 192.168.175.136 --uninstall
+[+] [192.168.175.136] DOUBLEPULSAR SMB IMPLANT DETECTED!!! XOR Key: 0x7c3bf3c1
+[+] [192.168.175.136] DOUBLEPULSAR uninstall successful
 ```
+
 ## Scanning your network
 ```shell
 # target network (adapt this to your network)
@@ -58,4 +63,6 @@ python detect_doublepulsar_rdp.py --file rdp.lst
 This repository also contains three Snort signatures that can be used for detecting the use of the unimplemented SESSION_SETUP Trans2 command that the SMB ping utility uses and different response cases. While we do not condone the reliance on signatures for effective attack detection, due to how easily they are bypassed, these rules are highly specific and should provide some detection capability against new threat groups reusing these exploits and implants without modification.
 
 ## More info
-For more information on this thinking, see the following article - https://www.countercept.com/our-thinking/missioncontrolasaurus/
+https://www.countercept.com/our-thinking/analyzing-the-doublepulsar-kernel-dll-injection-technique/  
+https://zerosum0x0.blogspot.co.uk/2017/04/doublepulsar-initial-smb-backdoor-ring.html  
+
