@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR SMB
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--ip', help='Single IP address to check')
 group.add_argument('--file', help='File containing a list of IP addresses to check')
-group.add_argument('--net', help='Network CIDR to check')
+group.add_argument('--net', help='Network CIDR to check (requires python netaddr library)')
 parser.add_argument('--timeout', help="Timeout on connection for socket in seconds", default=None)
 parser.add_argument('--verbose', help="Verbose output for checking of commands", action='store_true')
 parser.add_argument('--threads', help="Number of connection threads when checking file of IPs (default 10)", default="10")
