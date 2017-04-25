@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR SMB
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--ip', help='Single IP address to check')
 group.add_argument('--file', help='File containing a list of IP addresses to check')
+group.add_argument('--net', help='Network CIDR to check')
 parser.add_argument('--timeout', help="Timeout on connection for socket in seconds", default=None)
 parser.add_argument('--verbose', help="Verbose output for checking of commands", action='store_true')
 parser.add_argument('--threads', help="Number of connection threads when checking file of IPs (default 10)", default="10")
@@ -25,6 +26,7 @@ parser.add_argument('--threads', help="Number of connection threads when checkin
 args = parser.parse_args()
 ip = args.ip
 filename = args.file
+net = args.net
 timeout = args.timeout
 verbose = args.verbose
 num_threads = int(args.threads)
@@ -126,7 +128,6 @@ def threaded_check(ip_address):
     finally:
         semaphore.release()
 
-
 if ip:
     check_ip(ip)
 if filename:
@@ -136,5 +137,16 @@ if filename:
             ip_address = line.strip()
             t = threading.Thread(target=threaded_check, args=(ip_address,))
             t.start()
+if net:
+    from netaddr import IPNetwork
+    network = IPNetwork(net);
+    for addr in network:
+        # Skip the network and broadcast addresses
+        if ((network.size != 1) and ((addr == network.network) or (addr == network.broadcast))):
+            continue
+        semaphore.acquire()
+        ip_address = str(addr)
+        t = threading.Thread(target=threaded_check, args=(ip_address,))
+        t.start()
 
 
