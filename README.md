@@ -46,14 +46,14 @@ root@kali:~# python2 detect_doublepulsar_smb.py --ip 192.168.175.136 --uninstall
 NETWORKRANGE=192.168.33.0/24
 # install the required scanning tools
 brew install masscan || apt-get install masscan
-git clone https://github.com/FireFart/doublepulsar-detection-script.git
+git clone https://github.com/countercept/doublepulsar-detection-script.git
 cd doublepulsar-detection-script
 # scan open ports
 masscan -p445  $NETWORKRANGE > smb.lst
 masscan -p3389 $NETWORKRANGE > rdp.lst
 # clean the list of IPs
-sed -i \0 "s/^.* on //" smb.lst
-sed -i \0 "s/^.* on //" rdp.lst
+sed -i "s/^.* on //" smb.lst
+sed -i "s/^.* on //" rdp.lst
 # check vulnerabilities on the hosts who have the service open
 python detect_doublepulsar_smb.py --file smb.lst
 python detect_doublepulsar_rdp.py --file rdp.lst
