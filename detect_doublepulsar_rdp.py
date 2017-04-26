@@ -5,7 +5,8 @@ import socket
 import argparse
 import threading
 import ssl
-
+import logging
+import logging.handlers
 
 # Packets
 ssl_negotiation_request = binascii.unhexlify("030000130ee000000000000100080001000000")
@@ -34,12 +35,24 @@ num_threads = int(args.threads)
 semaphore = threading.BoundedSemaphore(value=num_threads)
 print_lock = threading.Lock()
 
+logging.captureWarnings(True)
+logger = logging.getLogger('DOUBLEPULSAR RDP')
+logger.setLevel(logging.DEBUG)
+fileHandler = logging.handlers.RotatingFileHandler('doublepulsar_rdp.log', maxBytes=2000000, backupCount=5)
+formatter = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s')
+fileHandler.setFormatter(formatter)
+logger.addHandler(fileHandler)
+
+# log console handler 
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(formatter)
+logger.addHandler(consoleHandler)
 
 def print_status(ip, message):
     global print_lock
 
     with print_lock:
-        print "[*] [%s] %s" % (ip, message)
+        logger.info("[%s] %s" % (ip, message))
 
 
 def check_ip(ip):
@@ -91,7 +104,7 @@ def check_ip(ip):
     # Server requires NLA which implant does not support
     elif len(negotiation_response) >= 19 and negotiation_response[11] == "\x03" and negotiation_response[15] == "\x05":
         with print_lock:
-            print "[-] [%s] Server requires NLA, which DOUBLEPULSAR does not support" % ip
+            logger.info("[%s] Server requires NLA, which DOUBLEPULSAR does not support" % ip)
 
         s.close()
         return
@@ -115,13 +128,13 @@ def check_ip(ip):
 
         with print_lock:
             if len(ping_response) == 288:
-                print "[+] [%s] DOUBLEPULSAR RDP IMPLANT DETECTED!!!" % ip
+                logger.info("[%s] DOUBLEPULSAR RDP IMPLANT DETECTED!!!" % ip)
             else:
-                print "[-] [%s] Status Unknown - Response received but length was %d not 288" % (ip, len(ping_response))
+                logger.info("[%s] Status Unknown - Response received but length was %d not 288" % (ip, len(ping_response)))
         s.close()
     except socket.error as e:
         with print_lock:
-            print "[-] [%s] No presence of DOUBLEPULSAR RDP implant" % ip
+            logger.info("[%s] No presence of DOUBLEPULSAR RDP implant" % ip)
 
 
 def threaded_check(ip_address):
@@ -131,7 +144,7 @@ def threaded_check(ip_address):
         check_ip(ip_address)
     except Exception as e:
         with print_lock:
-            print "[ERROR] [%s] - %s" % (ip_address, e)
+            logger.error("[%s] - %s" % (ip_address, e))
     finally:
         semaphore.release()
 

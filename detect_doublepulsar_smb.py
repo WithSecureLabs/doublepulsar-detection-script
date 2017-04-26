@@ -5,7 +5,8 @@ import socket
 import argparse
 import struct
 import threading
-
+import logging
+import logging.handlers
 
 # Packets
 negotiate_protocol_request = binascii.unhexlify("00000085ff534d4272000000001853c00000000000000000000000000000fffe00004000006200025043204e4554574f524b2050524f4752414d20312e3000024c414e4d414e312e30000257696e646f777320666f7220576f726b67726f75707320332e316100024c4d312e325830303200024c414e4d414e322e3100024e54204c4d20302e313200")
@@ -35,6 +36,18 @@ uninstall = args.uninstall
 semaphore = threading.BoundedSemaphore(value=num_threads)
 print_lock = threading.Lock()
 
+logging.captureWarnings(True)
+logger = logging.getLogger('DOUBLEPULSAR SMB')
+logger.setLevel(logging.DEBUG)
+fileHandler = logging.handlers.RotatingFileHandler('doublepulsar_smb.log', maxBytes=2000000, backupCount=5)
+formatter = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s')
+fileHandler.setFormatter(formatter)
+logger.addHandler(fileHandler)
+
+# log console handler 
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(formatter)
+logger.addHandler(consoleHandler)
 
 def calculate_doublepulsar_xor_key(s):
     x = (2 * s ^ (((s & 0xff00 | (s << 16)) << 8) | (((s >> 16) | s & 0xff0000) >> 8)))
@@ -46,7 +59,7 @@ def print_status(ip, message):
     global print_lock
 
     with print_lock:
-        print "[*] [%s] %s" % (ip, message)
+        logger.info("[%s] %s" % (ip, message))
 
 
 def check_ip(ip):
@@ -113,7 +126,8 @@ def check_ip(ip):
         signature_long = struct.unpack('<Q', signature)[0]
         key = calculate_doublepulsar_xor_key(signature_long)
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! XOR Key: %s" % (ip, hex(key))
+            logger.info("[%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! XOR Key: %s" % (ip, hex(key)))
+
 
         if uninstall:
             # Update MID and op code via timeout
@@ -131,11 +145,11 @@ def check_ip(ip):
             uninstall_response = s.recv(1024)
             if uninstall_response[34] == "\x52":
                 with print_lock:
-                    print "[+] [%s] DOUBLEPULSAR uninstall successful" % ip
+                    logger.info("[%s] DOUBLEPULSAR uninstall successful" % ip)
 
     else:
         with print_lock:
-            print "[-] [%s] No presence of DOUBLEPULSAR SMB implant" % ip
+            logger.info("[%s] No presence of DOUBLEPULSAR SMB implant" % ip)
 
     s.close()
 
@@ -147,7 +161,7 @@ def threaded_check(ip_address):
         check_ip(ip_address)
     except Exception as e:
         with print_lock:
-            print "[ERROR] [%s] - %s" % (ip_address, e)
+            logger.error("[%s] - %s" % (ip_address, e))
     finally:
         semaphore.release()
 
