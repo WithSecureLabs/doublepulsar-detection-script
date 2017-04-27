@@ -36,10 +36,19 @@ semaphore = threading.BoundedSemaphore(value=num_threads)
 print_lock = threading.Lock()
 
 
+# https://zerosum0x0.blogspot.com/2017/04/doublepulsar-initial-smb-backdoor-ring.html
 def calculate_doublepulsar_xor_key(s):
     x = (2 * s ^ (((s & 0xff00 | (s << 16)) << 8) | (((s >> 16) | s & 0xff0000) >> 8)))
     x = x & 0xffffffff  # this line was added just to truncate to 32 bits
     return x
+
+
+# The arch is adjacent to the XOR key in the SMB signature
+def calculate_doublepulsar_arch(s):
+    if s & 0xffffffff00000000 == 0:
+        return "x86 (32-bit)"
+    else:
+        return "x64 (64-bit)"
 
 
 def print_status(ip, message):
@@ -112,8 +121,9 @@ def check_ip(ip):
         signature = final_response[18:26]
         signature_long = struct.unpack('<Q', signature)[0]
         key = calculate_doublepulsar_xor_key(signature_long)
+        arch = calculate_doublepulsar_arch(signature_long)
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! XOR Key: %s" % (ip, hex(key))
+            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s, XOR Key: %s" % (ip, arch, hex(key))
 
         if uninstall:
             # Update MID and op code via timeout
