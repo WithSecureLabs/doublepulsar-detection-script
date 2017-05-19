@@ -14,25 +14,6 @@ tree_connect_request = binascii.unhexlify("00000060ff534d4275000000001807c000000
 trans2_session_setup = binascii.unhexlify("0000004eff534d4232000000001807c00000000000000000000000000008fffe000841000f0c0000000100000000000000a6d9a40000000c00420000004e0001000e000d0000000000000000000000000000")
 
 # Arguments
-parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR SMB implant\n\nAuthor: Luke Jennings\nWebsite: https://countercept.com\nTwitter: @countercept", formatter_class=argparse.RawTextHelpFormatter)
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('--ip', help='Single IP address to check')
-group.add_argument('--file', help='File containing a list of IP addresses to check')
-group.add_argument('--net', help='Network CIDR to check (requires python netaddr library)')
-parser.add_argument('--timeout', help="Timeout on connection for socket in seconds", default=None)
-parser.add_argument('--verbose', help="Verbose output for checking of commands", action='store_true')
-parser.add_argument('--threads', help="Number of connection threads when checking file of IPs (default 10)", default="10")
-parser.add_argument('--uninstall', help="Uninstall DOUBLEPULSAR if found", action='store_true')
-
-args = parser.parse_args()
-ip = args.ip
-filename = args.file
-net = args.net
-timeout = args.timeout
-verbose = args.verbose
-num_threads = int(args.threads)
-uninstall = args.uninstall
-semaphore = threading.BoundedSemaphore(value=num_threads)
 print_lock = threading.Lock()
 
 
@@ -58,9 +39,8 @@ def print_status(ip, message):
         print "[*] [%s] %s" % (ip, message)
 
 
-def check_ip(ip):
-    global negotiate_protocol_request, session_setup_request, tree_connect_request, trans2_session_setup, timeout, verbose
-
+def check_ip(ip, timeout, verbose, uninstall):
+    global negotiate_protocol_request, session_setup_request, tree_connect_request, trans2_session_setup
     # Connect to socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(float(timeout) if timeout else None)
@@ -150,36 +130,62 @@ def check_ip(ip):
     s.close()
 
 
-def threaded_check(ip_address):
+def threaded_check(ip_address, timeout, verbose, uninstall):
     global semaphore
 
     try:
-        check_ip(ip_address)
+        check_ip(ip_address, timeout, verbose, uninstall)
     except Exception as e:
         with print_lock:
             print "[ERROR] [%s] - %s" % (ip_address, e)
     finally:
         semaphore.release()
 
-if ip:
-    check_ip(ip)
+def detect_doublepulsar_smb(ip=None, filename=None, net=None, num_threads=1, timeout=None, verbose=False, uninstall=False):
+    global semaphore
+    semaphore = threading.BoundedSemaphore(value=num_threads)
 
-elif filename:
-    with open(filename, "r") as fp:
-        for line in fp:
+    if ip:
+        check_ip(ip, timeout, semaphore, uninstall)
+
+    elif filename:
+        with open(filename, "r") as fp:
+            for line in fp:
+                semaphore.acquire()
+                ip_address = line.strip()
+                t = threading.Thread(target=threaded_check, args=(ip_address,timeout,verbose,uninstall,))
+                t.start()
+
+    elif net:
+        from netaddr import IPNetwork
+        network = IPNetwork(net)
+        for addr in network:
+            # Skip the network and broadcast addresses
+            if (network.size != 1) and ((addr == network.network) or (addr == network.broadcast)):
+                continue
             semaphore.acquire()
-            ip_address = line.strip()
-            t = threading.Thread(target=threaded_check, args=(ip_address,))
+            ip_address = str(addr)
+            t = threading.Thread(target=threaded_check, args=(ip_address,timeout,verbose,uninstall,))
             t.start()
 
-elif net:
-    from netaddr import IPNetwork
-    network = IPNetwork(net)
-    for addr in network:
-        # Skip the network and broadcast addresses
-        if (network.size != 1) and ((addr == network.network) or (addr == network.broadcast)):
-            continue
-        semaphore.acquire()
-        ip_address = str(addr)
-        t = threading.Thread(target=threaded_check, args=(ip_address,))
-        t.start()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Detect present of DOUBLEPULSAR SMB implant\n\nAuthor: Luke Jennings\nWebsite: https://countercept.com\nTwitter: @countercept", formatter_class=argparse.RawTextHelpFormatter)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--ip', help='Single IP address to check')
+    group.add_argument('--file', help='File containing a list of IP addresses to check')
+    group.add_argument('--net', help='Network CIDR to check (requires python netaddr library)')
+    parser.add_argument('--timeout', help="Timeout on connection for socket in seconds", default=None)
+    parser.add_argument('--verbose', help="Verbose output for checking of commands", action='store_true')
+    parser.add_argument('--threads', help="Number of connection threads when checking file of IPs (default 10)", default="10")
+    parser.add_argument('--uninstall', help="Uninstall DOUBLEPULSAR if found", action='store_true')
+
+    args = parser.parse_args()
+    ip = args.ip
+    filename = args.file
+    net = args.net
+    timeout = args.timeout
+    verbose = args.verbose
+    num_threads = int(args.threads)
+    uninstall = args.uninstall
+
+    detect_doublepulsar_smb(ip, filename, net, num_threads, timeout, verbose, uninstall)
