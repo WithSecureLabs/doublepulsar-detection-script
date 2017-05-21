@@ -146,7 +146,7 @@ def detect_doublepulsar_smb(ip=None, filename=None, net=None, num_threads=1, tim
     semaphore = threading.BoundedSemaphore(value=num_threads)
 
     if ip:
-        check_ip(ip, timeout, semaphore, uninstall)
+        check_ip(ip, timeout, verbose, uninstall)
 
     elif filename:
         with open(filename, "r") as fp:
