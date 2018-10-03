@@ -55,7 +55,7 @@ def print_status(ip, message):
     global print_lock
 
     with print_lock:
-        print "[*] [%s] %s" % (ip, message)
+        print_("[*] [%s] %s" % (ip, message))
 
 
 def check_ip(ip):
@@ -123,7 +123,7 @@ def check_ip(ip):
         key = calculate_doublepulsar_xor_key(signature_long)
         arch = calculate_doublepulsar_arch(signature_long)
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s, XOR Key: %s" % (ip, arch, hex(key))
+            print_("[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s, XOR Key: %s" % (ip, arch, hex(key)))
 
         if uninstall:
             # Update MID and op code via timeout
@@ -141,11 +141,11 @@ def check_ip(ip):
             uninstall_response = s.recv(1024)
             if uninstall_response[34] == "\x52":
                 with print_lock:
-                    print "[+] [%s] DOUBLEPULSAR uninstall successful" % ip
+                    print_("[+] [%s] DOUBLEPULSAR uninstall successful" % ip)
 
     else:
         with print_lock:
-            print "[-] [%s] No presence of DOUBLEPULSAR SMB implant" % ip
+            print_("[-] [%s] No presence of DOUBLEPULSAR SMB implant" % ip)
 
     s.close()
 
@@ -157,7 +157,7 @@ def threaded_check(ip_address):
         check_ip(ip_address)
     except Exception as e:
         with print_lock:
-            print "[ERROR] [%s] - %s" % (ip_address, e)
+            print_("[ERROR] [%s] - %s" % (ip_address, e))
     finally:
         semaphore.release()
 
