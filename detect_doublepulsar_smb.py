@@ -123,7 +123,7 @@ def check_ip(ip):
         key = calculate_doublepulsar_xor_key(signature_long)
         arch = calculate_doublepulsar_arch(signature_long)
         with print_lock:
-            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s, XOR Key: %s" % (ip, arch, hex(key))
+            print "[+] [%s] DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s, XOR Key: 0x%x" % (ip, arch, key)
 
         if uninstall:
             # Update MID and op code via timeout
