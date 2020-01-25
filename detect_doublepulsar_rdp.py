@@ -5,6 +5,7 @@ import socket
 import argparse
 import threading
 import ssl
+import struct
 
 
 # Packets
@@ -114,10 +115,17 @@ def check_ip(ip):
         ping_response = s.recv(1024)
 
         with print_lock:
-            if len(ping_response) == 288:
-                print "[+] [%s] DOUBLEPULSAR RDP IMPLANT DETECTED!!!" % ip
-            else:
+            if len(ping_response) != 288:
                 print "[-] [%s] Status Unknown - Response received but length was %d not 288" % (ip, len(ping_response))
+                return
+
+            if not ping_response.startswith("\x44\x37\x28\x19"):
+                magic = struct.unpack('<I', ping_response[:4])[0]
+                print "[-] [%s] Status Unknown - Response received but magic was 0x%x not 0x19283744" % (ip, magic)
+                return
+
+            print "[+] [%s] DOUBLEPULSAR RDP IMPLANT DETECTED!!!" % ip
+
         s.close()
     except socket.error as e:
         with print_lock:
